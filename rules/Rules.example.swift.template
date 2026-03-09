@@ -1,0 +1,34 @@
+import Foundation
+
+// Copy this file to Rules.swift and customize your rules.
+// Rules.swift is gitignored, so your personal rules stay private.
+// After editing, rebuild with: sh scripts/build.sh
+
+enum Rules {
+    static let all: [Rule] = [
+        // Move STL files to 3D printing workspace after 1 hour
+        Rule(name: "Move STLs to Workspace", watch: "~/Downloads",
+             match: [hasExtension("stl"), olderThan(.init(hours: 1))],
+             action: [moveTo("~/workspace/3d-printing")]),
+
+        // Auto-print DHL labels and trash them
+        Rule(name: "DHL Label drucken", watch: "~/Downloads",
+             match: [nameStartsWith("DHL_label"), hasExtension("pdf")],
+             action: [printFile(), moveToTrash()]),
+
+        // Clean old DMGs
+        Rule(name: "Clean old DMGs", watch: "~/Downloads",
+             match: [hasExtension("dmg"), olderThan(.init(days: 7))],
+             action: [moveToTrash()]),
+
+        // Remove empty folders
+        Rule(name: "Remove empty folders", watch: "~/Downloads",
+             match: [isFolder(), isEmpty()],
+             action: [moveToTrash()]),
+
+        // Sort old downloads by date (catch-all, keep last)
+        Rule(name: "Sort old downloads", watch: "~/Downloads",
+             match: [isFile(), notAddedToday()],
+             action: [sortIntoSubfolder { f in formatDate(f.dateAdded) }]),
+    ]
+}

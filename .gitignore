@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea
+xcuserdata/
+DerivedData/
+
+# Personal rules (compiled with app, but gitignored)
+Rules/Rules.swift
+
+# Built app bundle
+FileButler.app/

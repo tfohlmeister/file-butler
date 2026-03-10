@@ -25,14 +25,16 @@ struct FileInfo {
         self.ext = url.pathExtension.lowercased()
         self.isDirectory = resourceValues.isDirectory ?? false
         self.dateModified = resourceValues.contentModificationDate ?? Date()
-        // Prefer Spotlight dateAdded, fall back to file creation date
-        if let spotlightDate = SpotlightMetadata.dateAdded(for: url) {
-            self.dateAdded = spotlightDate
-        } else if let creationDate = resourceValues.creationDate {
-            self.dateAdded = creationDate
-        } else {
-            self.dateAdded = self.dateModified
-        }
+
+        // st_ctime via POSIX stat - always set by kernel, can't be faked by apps
+        var statBuf = stat()
+        stat(url.path, &statBuf)
+        let ctime = Date(timeIntervalSince1970: TimeInterval(statBuf.st_ctimespec.tv_sec))
+
+        // dateAdded = newest of (Spotlight dateAdded, ctime)
+        let spotlightDate = SpotlightMetadata.dateAdded(for: url)
+        self.dateAdded = max(spotlightDate ?? .distantPast, ctime)
+
         self.tags = resourceValues.tagNames ?? []
         self.size = UInt64(resourceValues.totalFileSize ?? resourceValues.fileSize ?? 0)
     }

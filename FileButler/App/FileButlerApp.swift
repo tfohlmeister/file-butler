@@ -16,11 +16,39 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var engine: Engine!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        loadEnvFile()
         setupMenuBar()
         NotificationManager.shared.setup()
 
         engine = Engine(rules: Rules.all)
         engine.start()
+    }
+
+    private func loadEnvFile() {
+        let bundleDir = Bundle.main.bundlePath
+            .components(separatedBy: "/").dropLast().joined(separator: "/")
+        let envPath = bundleDir + "/.env"
+        guard let contents = try? String(contentsOfFile: envPath, encoding: .utf8) else {
+            Logger.debug("No .env file found at \(envPath)")
+            return
+        }
+        var count = 0
+        for line in contents.components(separatedBy: .newlines) {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty || trimmed.hasPrefix("#") { continue }
+            let parts = trimmed.split(separator: "=", maxSplits: 1)
+            guard parts.count == 2 else { continue }
+            let key = String(parts[0]).trimmingCharacters(in: .whitespaces)
+            var value = String(parts[1]).trimmingCharacters(in: .whitespaces)
+            // Strip surrounding quotes
+            if (value.hasPrefix("\"") && value.hasSuffix("\"")) ||
+               (value.hasPrefix("'") && value.hasSuffix("'")) {
+                value = String(value.dropFirst().dropLast())
+            }
+            setenv(key, value, 1)
+            count += 1
+        }
+        Logger.info("Loaded \(count) env vars from .env")
     }
 
     func applicationWillTerminate(_ notification: Notification) {

@@ -39,6 +39,18 @@ cp com.tfohlmeister.file-butler.plist ~/Library/LaunchAgents/
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.tfohlmeister.file-butler.plist
 ```
 
+### Environment Variables
+
+If your rules use `shell(...)` actions that reference environment variables (e.g. API tokens), create a `.env` file next to `FileButler.app`:
+
+```bash
+# .env (gitignored, never committed)
+SEVDESK_TOKEN=your-token-here
+ANOTHER_SECRET=foobar
+```
+
+FileButler loads this file on startup and makes all variables available to shell actions. Rebuild is not required when changing `.env`, just restart the app.
+
 To uninstall:
 
 ```bash

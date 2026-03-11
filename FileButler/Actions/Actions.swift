@@ -82,10 +82,15 @@ func shell(_ cmd: String) -> Action {
         let expanded = cmd.replacingOccurrences(of: "{path}", with: file.path)
             .replacingOccurrences(of: "{name}", with: file.name)
         process.arguments = ["-c", expanded]
+        let pipe = Pipe()
+        process.standardError = pipe
         try process.run()
         process.waitUntilExit()
         if process.terminationStatus != 0 {
-            Logger.warn("Shell command exited with \(process.terminationStatus): \(cmd)")
+            let stderr = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+            let detail = stderr.isEmpty ? "" : ": \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))"
+            throw NSError(domain: "FileButler", code: Int(process.terminationStatus),
+                          userInfo: [NSLocalizedDescriptionKey: "Shell command exited with \(process.terminationStatus)\(detail)"])
         }
     }
 }

@@ -26,6 +26,7 @@ swiftc \
     -framework Cocoa \
     -framework UserNotifications \
     -framework CoreServices \
+    -framework ServiceManagement \
     $SWIFT_FILES \
     $RULES_FILES
 
@@ -164,5 +165,15 @@ codesign --force --deep --sign "$SIGN_IDENTITY" "$APP_DIR"
 echo "    Signed"
 
 echo ""
-echo "==> Build complete: $APP_DIR"
-echo "    Run with: open FileButler.app"
+
+# ── 5. Install to ~/Applications ─────────────────────────────
+INSTALL_DIR="$HOME/Applications"
+mkdir -p "$INSTALL_DIR"
+echo "==> Installing to $INSTALL_DIR..."
+rm -rf "$INSTALL_DIR/FileButler.app"
+cp -R "$APP_DIR" "$INSTALL_DIR/FileButler.app"
+echo "    Installed"
+
+echo ""
+echo "==> Build complete: $INSTALL_DIR/FileButler.app"
+echo "    Run with: open ~/Applications/FileButler.app"

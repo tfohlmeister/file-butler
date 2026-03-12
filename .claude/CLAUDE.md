@@ -17,8 +17,8 @@ Open-source file automation for macOS. Pure Swift menubar app, no external depen
 ## Build
 
 ```bash
-sh scripts/build.sh    # Compile + generate icons
-open FileButler.app    # Launch
+sh scripts/build.sh               # Compile + generate icons + install to ~/Applications
+open ~/Applications/FileButler.app # Launch
 ```
 
 No Xcode project needed. swiftc compiles all .swift files from FileButler/ and Rules/.
@@ -49,6 +49,7 @@ Actions take `inout FileInfo` so rename() can update the path for subsequent act
 - Trash: `NSWorkspace.shared.recycle`
 - Open: `NSWorkspace.shared.open`
 - Notifications: `UNUserNotificationCenter`
+- Launch at Login: `SMAppService.mainApp` (ServiceManagement framework)
 
 ## Target
 

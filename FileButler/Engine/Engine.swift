@@ -152,6 +152,12 @@ class Engine {
                     }
                 } catch {
                     Logger.error("Error in rule \"\(rule.name)\" for \(path): \(error)")
+                    // Mark as processed even on failure to prevent retry spam
+                    let key = self.processedKey(rule: rule.name, path: path)
+                    let now = Date()
+                    self.processedQueue.sync {
+                        self.processed[key] = (modified: Date.distantFuture, processedAt: now)
+                    }
                 }
             }
         }

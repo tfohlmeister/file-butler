@@ -172,6 +172,12 @@ mkdir -p "$INSTALL_DIR"
 echo "==> Installing to $INSTALL_DIR..."
 rm -rf "$INSTALL_DIR/FileButler.app"
 cp -R "$APP_DIR" "$INSTALL_DIR/FileButler.app"
+CONFIG_DIR="$HOME/Library/Application Support/FileButler"
+mkdir -p "$CONFIG_DIR"
+if [ -f "$PROJECT_DIR/.env" ]; then
+    cp "$PROJECT_DIR/.env" "$CONFIG_DIR/.env"
+    echo "    Copied .env to $CONFIG_DIR"
+fi
 echo "    Installed"
 
 echo ""

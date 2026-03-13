@@ -14,10 +14,15 @@ Open-source file automation for macOS. Pure Swift menubar app, no external depen
 - `Rules/Rules.example.swift.template` - Example rules (committed, not compiled)
 - `scripts/build.sh` - Build script (swiftc, icon generation)
 
+## Configuration
+
+Secrets/env vars are loaded from `~/Library/Application Support/FileButler/.env`.
+The build script copies `.env` from the project root to that location automatically.
+
 ## Build
 
 ```bash
-sh scripts/build.sh               # Compile + generate icons + install to ~/Applications
+sh scripts/build.sh               # Compile + generate icons + install to ~/Applications + copy .env
 open ~/Applications/FileButler.app # Launch
 ```
 

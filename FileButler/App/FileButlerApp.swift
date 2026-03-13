@@ -26,9 +26,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func loadEnvFile() {
-        let bundleDir = Bundle.main.bundlePath
-            .components(separatedBy: "/").dropLast().joined(separator: "/")
-        let envPath = bundleDir + "/.env"
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let configDir = appSupport.appendingPathComponent("FileButler").path
+        let envPath = configDir + "/.env"
         guard let contents = try? String(contentsOfFile: envPath, encoding: .utf8) else {
             Logger.debug("No .env file found at \(envPath)")
             return

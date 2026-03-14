@@ -15,6 +15,8 @@ struct FileButlerMain {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
     var engine: Engine!
+    var appCleanupMonitor: AppCleanupMonitor!
+    private var activeCleanupPanel: CleanupPanel?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         loadEnvFile()
@@ -23,6 +25,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         engine = Engine(rules: Rules.all)
         engine.start()
+
+        appCleanupMonitor = AppCleanupMonitor()
+        appCleanupMonitor.onShowCleanupPanel = { [weak self] appName, _, items in
+            self?.showCleanupPanel(appName: appName, items: items)
+        }
+        NotificationManager.shared.onShowCleanupDetails = { [weak self] appName in
+            self?.appCleanupMonitor.showPanel(forApp: appName + ".app")
+        }
+        if UserDefaults.standard.object(forKey: "appCleanupEnabled") == nil {
+            UserDefaults.standard.set(true, forKey: "appCleanupEnabled")
+        }
+        if UserDefaults.standard.bool(forKey: "appCleanupEnabled") {
+            appCleanupMonitor.start()
+        }
+    }
+
+    private func showCleanupPanel(appName: String, items: [LeftoverItem]) {
+        let panel = CleanupPanel(appName: appName, items: items)
+        activeCleanupPanel = panel
+        panel.show()
     }
 
     private func loadEnvFile() {
@@ -54,6 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         engine?.stop()
+        appCleanupMonitor?.stop()
     }
 
     private func setupMenuBar() {
@@ -86,6 +109,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let launchAtLoginItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin(_:)), keyEquivalent: "")
         launchAtLoginItem.state = SMAppService.mainApp.status == .enabled ? .on : .off
         menu.addItem(launchAtLoginItem)
+
+        let appCleanupItem = NSMenuItem(title: "App Cleanup", action: #selector(toggleAppCleanup(_:)), keyEquivalent: "")
+        appCleanupItem.state = UserDefaults.standard.bool(forKey: "appCleanupEnabled") ? .on : .off
+        menu.addItem(appCleanupItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -120,6 +147,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    @objc private func toggleAppCleanup(_ sender: NSMenuItem) {
+        let enabled = !UserDefaults.standard.bool(forKey: "appCleanupEnabled")
+        UserDefaults.standard.set(enabled, forKey: "appCleanupEnabled")
+        sender.state = enabled ? .on : .off
+        if enabled {
+            appCleanupMonitor.start()
+            Logger.info("App Cleanup enabled")
+        } else {
+            appCleanupMonitor.stop()
+            Logger.info("App Cleanup disabled")
+        }
+    }
+
     @objc private func viewLogs() {
         NSWorkspace.shared.open(URL(fileURLWithPath: Logger.logFile))
     }
@@ -133,6 +173,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quitApp() {
         engine?.stop()
+        appCleanupMonitor?.stop()
         NSApplication.shared.terminate(nil)
     }
 }

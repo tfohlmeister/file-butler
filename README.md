@@ -114,6 +114,14 @@ Rules are evaluated **in order**. All matching rules are applied, unless the fil
 | `shell("command {path}")` | Run shell command (`{path}` and `{name}` are replaced) |
 | `openFile()` | Open with default macOS app |
 
+## App Cleanup
+
+FileButler can detect when apps are uninstalled from `/Applications` or `~/Applications` and automatically find leftover files (caches, preferences, containers, logs, etc.) in `~/Library/`. A cleanup panel appears after a 30-second delay (to avoid false alarms from app updates) and lets you selectively move leftovers to Trash.
+
+Scanned locations include Application Support, Caches, Preferences, Logs, Containers, Group Containers, Saved Application State, HTTPStorages, WebKit, and Cookies.
+
+The feature can be toggled via the "App Cleanup" checkbox in the menubar menu (enabled by default).
+
 ## Notifications
 
 FileButler sends macOS notifications for every rule match. The notification shows the rule name and filename.

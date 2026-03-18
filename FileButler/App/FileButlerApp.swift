@@ -19,6 +19,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var activeCleanupPanel: CleanupPanel?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        ProcessInfo.processInfo.disableAutomaticTermination("FileButler is a background service")
+        ProcessInfo.processInfo.disableSuddenTermination()
+
         loadEnvFile()
         setupMenuBar()
         NotificationManager.shared.setup()

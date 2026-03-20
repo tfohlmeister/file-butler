@@ -11,12 +11,14 @@ class AppIndex {
     private let queue = DispatchQueue(label: "file-butler.app-index")
 
     func start() {
-        refresh()
+        queue.async { [weak self] in
+            self?.refreshOnQueue()
+        }
 
         let timer = DispatchSource.makeTimerSource(queue: queue)
         timer.schedule(deadline: .now() + 1800, repeating: 1800)
         timer.setEventHandler { [weak self] in
-            self?.refresh()
+            self?.refreshOnQueue()
         }
         timer.resume()
         refreshTimer = timer
@@ -39,7 +41,15 @@ class AppIndex {
         return queue.sync { index[appName]?.bundleID }
     }
 
+    /// Called from any thread; dispatches to queue internally.
     func refresh() {
+        queue.async { [weak self] in
+            self?.refreshOnQueue()
+        }
+    }
+
+    /// Must be called on `queue`.
+    private func refreshOnQueue() {
         let paths = [
             "/Applications",
             NSString(string: "~/Applications").expandingTildeInPath
@@ -58,9 +68,7 @@ class AppIndex {
             }
         }
 
-        queue.sync {
-            index = newIndex
-        }
+        index = newIndex
         Logger.debug("AppIndex refreshed: \(newIndex.count) apps indexed")
     }
 

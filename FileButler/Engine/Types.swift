@@ -31,9 +31,10 @@ struct FileInfo {
         stat(url.path, &statBuf)
         let ctime = Date(timeIntervalSince1970: TimeInterval(statBuf.st_ctimespec.tv_sec))
 
-        // dateAdded = newest of (Spotlight dateAdded, ctime)
+        // Prefer Spotlight dateAdded (stable), fall back to ctime
+        // ctime changes on any metadata update, not just file addition
         let spotlightDate = SpotlightMetadata.dateAdded(for: url)
-        self.dateAdded = max(spotlightDate ?? .distantPast, ctime)
+        self.dateAdded = spotlightDate ?? ctime
 
         self.tags = resourceValues.tagNames ?? []
         self.size = UInt64(resourceValues.totalFileSize ?? resourceValues.fileSize ?? 0)
